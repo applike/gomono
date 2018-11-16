@@ -8,7 +8,18 @@ import (
 )
 
 func Import(path string) (*build.Package, error) {
-	return build.Import(path, "", 0)
+	var (
+		p   *build.Package
+		err error
+		cwd string
+	)
+	cwd, err = os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+
+	p, err = build.Import(path, cwd, 0)
+	return p, err
 }
 
 // Packages returns a list of all packages named by pattern
