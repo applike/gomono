@@ -10,11 +10,12 @@ import (
 // Graph returns the dependency graph of all packages named by pattern
 func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 	var (
-		g     *simple.DirectedGraph
-		pkgs  []*build.Package
-		p     *build.Package
-		nodes = make(map[string]graph.Node)
-		err   error
+		g       *simple.DirectedGraph
+		pkgs    []*build.Package
+		p       *build.Package
+		nodes   = make(map[string]graph.Node)
+		visited = make(map[string]struct{})
+		err     error
 	)
 
 	g = simple.NewDirectedGraph()
@@ -23,14 +24,12 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 		return nil, nil, err
 	}
 
-	for i := 0; i < len(pkgs); i++ {
-		addNode(g, pkgs[i].ImportPath, nodes)
-	}
-
 	for len(pkgs) > 0 {
-
 		p = pkgs[0]
 		pkgs = pkgs[1:]
+		if _, ok := visited[p.ImportPath]; ok {
+			continue // already been here
+		}
 
 		if _, ok := nodes[p.ImportPath]; !ok {
 			addNode(g, p.ImportPath, nodes)
@@ -39,7 +38,7 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 		for _, ip := range p.Imports {
 			importedPackage, err := Import(ip)
 			if importedPackage.Goroot {
-				continue
+				continue // Don't care about stdlib
 			}
 			if err != nil {
 				return nil, nil, err
@@ -57,6 +56,7 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 
 			pkgs = append(pkgs, importedPackage)
 		}
+		visited[p.ImportPath] = struct{}{}
 	}
 	return g, nodes, nil
 }
