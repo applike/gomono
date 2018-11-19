@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/applike/gomono/internal/dep"
 	"github.com/applike/gomono/internal/dot"
 	"github.com/applike/gomono/internal/search"
 )
 
-func main1() {
-	fmt.Println(search.MainPackages("./..."))
+func main() {
+	fmt.Println(dep.DiffPkgs(".", "HEAD", "HEAD"))
 }
 
-func main() {
+func main1() {
 
 	mains, err := search.MainPackages("./...")
 	if err != nil {

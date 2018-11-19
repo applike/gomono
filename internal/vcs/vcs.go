@@ -1,6 +1,8 @@
 package vcs
 
 import (
+	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -27,6 +29,18 @@ func changed(dir, first, second string) bool {
 	return len(strings.TrimSpace(string(cmdOut))) > 0
 }
 
-func depChanged(pkg, first, second string) bool {
-	return false
+// Show returns the lines of a file at revision rev
+func Show(path, rev string) (string, error) {
+
+	var (
+		cmdOut []byte
+		err    error
+	)
+	cmd := exec.Command("git", "show", fmt.Sprintf("%v:%v", rev, path))
+	cmd.Stderr = os.Stderr
+	if cmdOut, err = cmd.Output(); err != nil {
+		return "", err
+	}
+
+	return string(cmdOut), nil
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/applike/gomono/internal/vcs"
 )
 
 func getLockFile(p string) (string, error) {
@@ -65,6 +66,44 @@ func find(p project, l []project) (project, bool) {
 		}
 	}
 	return p, false
+}
+
+// DiffPkgs returns a list of packages which have been
+// changed between the commits named by old and new
+func DiffPkgs(path, old, new string) ([]string, error) {
+	lock, err := getLockFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	o, err := vcs.Show(lock, old)
+	if err != nil {
+		return nil, err
+	}
+
+	n, err := vcs.Show(lock, new)
+	if err != nil {
+		return nil, err
+	}
+
+	op, err := parseTOML(o)
+	if err != nil {
+		return nil, err
+	}
+	np, err := parseTOML(n)
+	if err != nil {
+		return nil, err
+	}
+
+	var pkgs = make([]string, 0)
+	changed := Diff(op, np)
+	for _, p := range changed.Projects {
+		for _, pkg := range p.Packages {
+			pkgs = append(pkgs, string(pkg))
+		}
+	}
+
+	return pkgs, nil
 }
 
 // Diff returns a list of projets, which are different in a and b
