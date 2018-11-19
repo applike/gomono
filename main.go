@@ -2,29 +2,40 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/applike/gomono/internal/dot"
 	"github.com/applike/gomono/internal/search"
 )
 
-func main() {
-	// pkgs, err := search.Packages(".")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// for _, p := range pkgs {
-	// 	b, _ := json.MarshalIndent(p, "", "  ")
-	// 	fmt.Println(string(b))
-	// }
+func main1() {
+	fmt.Println(search.MainPackages("./..."))
+}
 
-	g, m, err := search.Graph(".")
+func main() {
+
+	mains, err := search.MainPackages("./...")
 	if err != nil {
 		panic(err)
 	}
 
-	for k, v := range m {
-		fmt.Printf("%v: %v\n", v, k)
-	}
+	printGraphs := true // TODO: move to flag
+	if printGraphs {
+		for _, m := range mains {
+			g, nodes, err := search.Graph(m)
+			if err != nil {
+				panic(err)
+			}
+			names := make(map[int]string)
+			for _, v := range nodes {
+				names[int(v.ID())] = v.ImportPath
+			}
 
-	fmt.Printf("%v map entries\n", len(m))
-	fmt.Printf("%v graph entries\n", g.Nodes().Len())
+			err = dot.Dot(os.Stdout, m, g, names)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println()
+		}
+	}
 }

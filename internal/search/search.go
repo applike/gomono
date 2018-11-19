@@ -43,9 +43,17 @@ func Packages(pattern string) ([]*build.Package, error) {
 
 // ImportPaths returns the ImportPaths of all packages named by pattern
 func ImportPaths(pattern string) ([]string, error) {
-	cmd := exec.Command("go", "list", "-e", pattern)
+	return List([]string{"-e", pattern})
+}
+
+func List(args []string) ([]string, error) {
+	subcmd := []string{
+		"list",
+	}
+	args = append(subcmd, args...)
+	cmd := exec.Command("go", args...)
 	cmd.Stderr = os.Stderr
-	cmdOut, err := exec.Command("go", "list", "-e", "./...").Output()
+	cmdOut, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +66,14 @@ func ImportPaths(pattern string) ([]string, error) {
 		}
 	}
 	return packages, nil
+}
+
+func MainPackages(pattern string) ([]string, error) {
+
+	args := []string{
+		"-f",
+		"{{if eq .Name \"main\" }}{{ .ImportPath }}{{end}}",
+		pattern,
+	}
+	return List(args)
 }

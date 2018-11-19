@@ -7,13 +7,18 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 )
 
+type Package struct {
+	*build.Package
+	graph.Node
+}
+
 // Graph returns the dependency graph of all packages named by pattern
-func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
+func Graph(pattern string) (graph.Graph, map[string]*Package, error) {
 	var (
 		g       *simple.DirectedGraph
 		pkgs    []*build.Package
 		p       *build.Package
-		nodes   = make(map[string]graph.Node)
+		nodes   = make(map[string]*Package)
 		visited = make(map[string]struct{})
 		err     error
 	)
@@ -32,7 +37,7 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 		}
 
 		if _, ok := nodes[p.ImportPath]; !ok {
-			addNode(g, p.ImportPath, nodes)
+			addNode(g, p, nodes)
 		}
 
 		for _, ip := range p.Imports {
@@ -45,11 +50,11 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 			}
 
 			if _, ok := nodes[importedPackage.ImportPath]; !ok {
-				addNode(g, importedPackage.ImportPath, nodes)
+				addNode(g, importedPackage, nodes)
 			}
 
-			from := nodes[p.ImportPath]
-			to := nodes[importedPackage.ImportPath]
+			from := nodes[p.ImportPath].Node
+			to := nodes[importedPackage.ImportPath].Node
 
 			e := g.NewEdge(from, to)
 			g.SetEdge(e)
@@ -61,8 +66,11 @@ func Graph(pattern string) (graph.Graph, map[string]graph.Node, error) {
 	return g, nodes, nil
 }
 
-func addNode(g graph.NodeAdder, name string, nodes map[string]graph.Node) {
+func addNode(g graph.NodeAdder, p *build.Package, nodes map[string]*Package) {
 	n := g.NewNode()
 	g.AddNode(n)
-	nodes[name] = n
+	nodes[p.ImportPath] = &Package{
+		Package: p,
+		Node:    n,
+	}
 }
