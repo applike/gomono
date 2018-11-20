@@ -8,8 +8,9 @@ import (
 )
 
 type Golang struct {
-	dir string
-	out string
+	importPath string
+	dir        string
+	out        string
 }
 
 func NewFromImportPath(path string) (*Golang, error) {
@@ -19,8 +20,9 @@ func NewFromImportPath(path string) (*Golang, error) {
 	}
 
 	return &Golang{
-		dir: p.Dir,
-		out: p.PkgObj,
+		importPath: p.ImportPath,
+		dir:        p.Dir,
+		out:        p.PkgObj,
 	}, nil
 }
 
@@ -30,7 +32,7 @@ func (g *Golang) Build() error {
 	if len(out) > 0 {
 		args = append(args, "-o", g.out)
 	}
-	cmd := exec.Command("go", append(args, g.dir)...)
+	cmd := exec.Command("go", append(args, g.importPath)...)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
@@ -41,7 +43,7 @@ func (g *Golang) Build() error {
 }
 
 func (g *Golang) Test() error {
-	cmd := exec.Command("go", "test", g.dir)
+	cmd := exec.Command("go", "test", g.importPath)
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
