@@ -6,7 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/applike/gomono/internal/build"
 	"github.com/applike/gomono/internal/build/golang"
+	"github.com/applike/gomono/internal/build/makefile"
 	"github.com/applike/gomono/internal/cmd"
 	"github.com/applike/gomono/internal/dep"
 	"github.com/applike/gomono/internal/dot"
@@ -25,10 +27,12 @@ Long description of the gomono build tool
 }
 
 var (
-	print = CmdBuild.Flag.Bool("print", false, "print dependency graph and exit")
-	all   = CmdBuild.Flag.Bool("all", false, "build all, regardless of changes")
-	from  = CmdBuild.Flag.String("from", "HEAD~1", "First commit")
-	to    = CmdBuild.Flag.String("to", "HEAD", "Last commit")
+	print   = CmdBuild.Flag.Bool("print", false, "Print dependency graph and exit")
+	all     = CmdBuild.Flag.Bool("all", false, "Build all, regardless of changes")
+	from    = CmdBuild.Flag.String("from", "HEAD~1", "First commit")
+	to      = CmdBuild.Flag.String("to", "HEAD", "Last commit")
+	builder = CmdBuild.Flag.String("builder", "golang", "Build system to use. Possible values: 'golang', 'makefile'")
+	action  = CmdBuild.Flag.String("action", "build", "Action to execute. Possible values: 'build', 'test'")
 )
 
 func init() {
@@ -36,7 +40,20 @@ func init() {
 }
 
 func RunCmdBuild(cmd *cmd.Command, args []string) {
-	mains, err := search.MainPackages(args)
+	var (
+		mains []string
+		err   error
+	)
+
+	switch *action {
+	case "build":
+		mains, err = search.MainPackageNames(args)
+	case "test":
+		mains, err = search.PackageNames(args)
+	default:
+		log.Fatalf("unknown action %s", *action)
+	}
+
 	if err != nil {
 		log.Fatalf("failed to get packages %s, %v", args, err)
 	}
@@ -59,7 +76,7 @@ func RunCmdBuild(cmd *cmd.Command, args []string) {
 		}
 
 		if *all {
-			build(m)
+			execute(nodes[m])
 		} else {
 
 			// Traverse graph, identify changes, build if something changed
@@ -67,7 +84,7 @@ func RunCmdBuild(cmd *cmd.Command, args []string) {
 			changedDeps, err := dep.DiffPkgs(nodes[m].Dir, *from, *to)
 			if err != nil {
 				log.Printf("failed to find changed Deps for %s, %v", m, err)
-				build(m)
+				execute(nodes[m])
 				return
 			}
 			changedDepsMap := make(map[string]struct{})
@@ -93,19 +110,36 @@ func RunCmdBuild(cmd *cmd.Command, args []string) {
 				return false
 			})
 			if n != nil {
-				build(m)
+				execute(nodes[m])
 			}
 		}
 	}
 }
 
-func build(pkg string) {
-	builder, err := golang.NewFromImportPath(pkg)
-	if err != nil {
-		log.Fatalf("could not prepare build of %s", pkg)
+func execute(pkg *search.Package) {
+	var (
+		b   build.Builder
+		err error
+	)
+	if *builder == "golang" {
+		b, err = golang.NewFromImportPath(pkg.ImportPath)
+		if err != nil {
+			log.Fatalf("could not prepare build with arg %s: %v", pkg.ImportPath, err)
+		}
+	} else if *builder == "makefile" {
+		b = makefile.NewFromDirectory(pkg.Dir)
 	}
-	err = builder.Build()
+
+	switch *action {
+	case "build":
+		err = b.Build()
+	case "test":
+		err = b.Test()
+	default:
+		log.Fatalf("unknown action %s", *action)
+	}
+
 	if err != nil {
-		log.Fatalf("failed to build %s", pkg)
+		log.Fatalf("failed to build %s: %v", pkg.Dir, err)
 	}
 }

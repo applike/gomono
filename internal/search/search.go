@@ -68,11 +68,18 @@ func List(args []string) ([]string, error) {
 	return packages, nil
 }
 
-func MainPackages(pattern []string) ([]string, error) {
-
+func MainPackageNames(pattern []string) ([]string, error) {
 	args := []string{
 		"-f",
 		"{{if eq .Name \"main\" }}{{ .ImportPath }}{{end}}",
+	}
+	return List(append(args, pattern...))
+}
+
+func PackageNames(pattern []string) ([]string, error) {
+	args := []string{
+		"-f",
+		"{{ .ImportPath }}",
 	}
 	return List(append(args, pattern...))
 }

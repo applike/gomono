@@ -31,6 +31,7 @@ func (g *Golang) Build() error {
 	}
 	cmd := exec.Command("go", append(args, g.dir)...)
 	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		return err
 	}
@@ -41,6 +42,7 @@ func (g *Golang) Build() error {
 func (g *Golang) Test() error {
 	cmd := exec.Command("go", "test", g.dir)
 	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 	if err := cmd.Run(); err != nil {
 		return err
 	}
