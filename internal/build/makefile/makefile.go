@@ -23,6 +23,10 @@ func (m *Makefile) Test() error {
 	return runMake(m.file, []string{"test"})
 }
 
+func (m *Makefile) Deploy() error {
+	return runMake(m.file, []string{"deploy"})
+}
+
 func runMake(f string, args []string) error {
 	cmd := exec.Command("make", args...)
 	cmd.Dir = filepath.Dir(f)

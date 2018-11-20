@@ -1,6 +1,7 @@
 package golang
 
 import (
+	"fmt"
 	"go/build"
 	"os"
 	"os/exec"
@@ -47,4 +48,8 @@ func (g *Golang) Test() error {
 		return err
 	}
 	return nil
+}
+
+func (g *Golang) Deploy() error {
+	return fmt.Errorf("not implemented")
 }

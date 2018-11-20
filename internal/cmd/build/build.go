@@ -47,6 +47,7 @@ func RunCmdBuild(cmd *cmd.Command, args []string) {
 
 	switch *action {
 	case "build":
+	case "deploy":
 		mains, err = search.MainPackageNames(args)
 	case "test":
 		mains, err = search.PackageNames(args)
@@ -135,6 +136,8 @@ func execute(pkg *search.Package) {
 		err = b.Build()
 	case "test":
 		err = b.Test()
+	case "deploy":
+		err = b.Deploy()
 	default:
 		log.Fatalf("unknown action %s", *action)
 	}
