@@ -3,14 +3,11 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 
 	"github.com/applike/gomono/internal/cmd"
 	"github.com/applike/gomono/internal/cmd/build"
 )
-
-func main1() {
-
-}
 
 func init() {
 	cmd.Gomono.Commands = []*cmd.Command{
@@ -33,6 +30,7 @@ func main() {
 			cmd.Flag.Parse(args[1:])
 			args = cmd.Flag.Args()
 			cmd.Run(cmd, args)
+			os.Exit(0)
 		}
 	}
 }

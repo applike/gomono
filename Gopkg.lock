@@ -11,7 +11,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:9fd0da90ee719f2fe52593576f28ebf5b0b745db31763ce1febf6f8fe3f3c197"
+  digest = "1:506a194f7fc38fb61e458aa9d0f8d5e91ff40368c26d05b0b2250d1cb83d6b9a"
   name = "gonum.org/v1/gonum"
   packages = [
     "blas",
@@ -19,11 +19,13 @@
     "blas/gonum",
     "floats",
     "graph",
+    "graph/internal/linear",
     "graph/internal/ordered",
     "graph/internal/set",
     "graph/internal/uid",
     "graph/iterator",
     "graph/simple",
+    "graph/traverse",
     "internal/asm/c128",
     "internal/asm/f32",
     "internal/asm/f64",
@@ -43,6 +45,7 @@
     "github.com/BurntSushi/toml",
     "gonum.org/v1/gonum/graph",
     "gonum.org/v1/gonum/graph/simple",
+    "gonum.org/v1/gonum/graph/traverse",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

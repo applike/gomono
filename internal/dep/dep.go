@@ -44,9 +44,32 @@ type project struct {
 	Packages []pkg
 }
 
+func pkgEqual(a, b []pkg) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (p *project) equals(o *project) bool {
+	return p.Name == o.Name &&
+		p.Digest == o.Digest &&
+		p.Revision == o.Revision &&
+		p.Version == o.Version &&
+		pkgEqual(p.Packages, o.Packages)
+}
+
 // Projects contains a list of projects listed in deps Gopkg.lock
 type Projects struct {
-	Projects []project
+	Projects []*project
 }
 
 func parseTOML(input string) (*Projects, error) {
@@ -96,24 +119,38 @@ func DiffPkgs(path, old, new string) ([]string, error) {
 	}
 
 	var pkgs = make([]string, 0)
-	changed := Diff(op, np)
-	for _, p := range changed.Projects {
+	changed := diff(op.Projects, np.Projects)
+	for _, p := range changed {
+		if len(p.Packages) <= 0 {
+			pkgs = append(pkgs, string(p.Name))
+		}
 		for _, pkg := range p.Packages {
-			pkgs = append(pkgs, string(pkg))
+			pkgs = append(pkgs, fmt.Sprintf("%s/%s", p.Name, string(pkg)))
 		}
 	}
 
 	return pkgs, nil
 }
 
-// Diff returns a list of projets, which are different in a and b
-func Diff(old, new *Projects) *Projects {
-	var changed Projects
-	for _, p := range new.Projects {
-		newP, found := find(p, old.Projects)
-		if !found || newP.Version != p.Version || newP.Revision != p.Revision {
-			changed.Projects = append(changed.Projects, p)
+func diff(a, b []*project) []*project {
+	var diff []*project
+
+	for i := 0; i < 2; i++ {
+		for _, s1 := range a {
+			found := false
+			for _, s2 := range b {
+				if s1.equals(s2) {
+					found = true
+					break
+				}
+			}
+			if !found {
+				diff = append(diff, s1)
+			}
+		}
+		if i == 0 {
+			a, b = b, a
 		}
 	}
-	return &changed
+	return diff
 }
