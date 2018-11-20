@@ -46,8 +46,7 @@ func RunCmdBuild(cmd *cmd.Command, args []string) {
 	)
 
 	switch *action {
-	case "build":
-	case "deploy":
+	case "deploy", "build":
 		mains, err = search.MainPackageNames(args)
 	case "test":
 		mains, err = search.PackageNames(args)
