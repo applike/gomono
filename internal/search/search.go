@@ -23,7 +23,7 @@ func Import(path string) (*build.Package, error) {
 }
 
 // Packages returns a list of all packages named by pattern
-func Packages(pattern string) ([]*build.Package, error) {
+func Packages(pattern []string) ([]*build.Package, error) {
 	paths, err := ImportPaths(pattern)
 	if err != nil {
 		return nil, err
@@ -42,8 +42,8 @@ func Packages(pattern string) ([]*build.Package, error) {
 }
 
 // ImportPaths returns the ImportPaths of all packages named by pattern
-func ImportPaths(pattern string) ([]string, error) {
-	return List([]string{"-e", pattern})
+func ImportPaths(pattern []string) ([]string, error) {
+	return List(append([]string{"-e"}, pattern...))
 }
 
 func List(args []string) ([]string, error) {
@@ -68,12 +68,11 @@ func List(args []string) ([]string, error) {
 	return packages, nil
 }
 
-func MainPackages(pattern string) ([]string, error) {
+func MainPackages(pattern []string) ([]string, error) {
 
 	args := []string{
 		"-f",
 		"{{if eq .Name \"main\" }}{{ .ImportPath }}{{end}}",
-		pattern,
 	}
-	return List(args)
+	return List(append(args, pattern...))
 }

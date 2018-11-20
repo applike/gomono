@@ -48,4 +48,5 @@ func Dot(w io.Writer, name string, g graph.Graph, names map[int]string) error {
 var format = `{{define "T"}}    "{{.A}}" -> "{{.B}}"
 {{end}}{{define "END"}}    "{{.A}}" -> "{{.B}}"{{end}}digraph {{.Name}} {
 {{range $index, $element := .Edges}}{{if last $index}}{{template "END" $element}}{{else}}{{template "T" $element}}{{end}}{{end}}
-}`
+}
+`

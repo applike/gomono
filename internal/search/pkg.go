@@ -13,7 +13,7 @@ type Package struct {
 }
 
 // Graph returns the dependency graph of all packages named by pattern
-func Graph(pattern string) (graph.Graph, map[string]*Package, error) {
+func Graph(pattern []string) (graph.Graph, map[string]*Package, error) {
 	var (
 		g       *simple.DirectedGraph
 		pkgs    []*build.Package

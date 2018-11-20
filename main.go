@@ -1,42 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"flag"
+	"log"
 
-	"github.com/applike/gomono/internal/dep"
-	"github.com/applike/gomono/internal/dot"
-	"github.com/applike/gomono/internal/search"
+	"github.com/applike/gomono/internal/cmd"
+	"github.com/applike/gomono/internal/cmd/build"
 )
-
-func main() {
-	fmt.Println(dep.DiffPkgs(".", "HEAD", "HEAD"))
-}
 
 func main1() {
 
-	mains, err := search.MainPackages("./...")
-	if err != nil {
-		panic(err)
+}
+
+func init() {
+	cmd.Gomono.Commands = []*cmd.Command{
+		build.CmdBuild,
+	}
+}
+
+func main() {
+
+	flag.Parse()
+	log.SetFlags(0)
+
+	args := flag.Args()
+	if len(args) < 1 {
+		usage()
 	}
 
-	printGraphs := true // TODO: move to flag
-	if printGraphs {
-		for _, m := range mains {
-			g, nodes, err := search.Graph(m)
-			if err != nil {
-				panic(err)
-			}
-			names := make(map[int]string)
-			for _, v := range nodes {
-				names[int(v.ID())] = v.ImportPath
-			}
-
-			err = dot.Dot(os.Stdout, m, g, names)
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println()
+	for _, cmd := range cmd.Gomono.Commands {
+		if cmd.Name() == args[0] {
+			cmd.Flag.Parse(args[1:])
+			args = cmd.Flag.Args()
+			cmd.Run(cmd, args)
 		}
 	}
+}
+
+func usage() {
+	log.Fatal(cmd.Gomono.Usage)
 }
