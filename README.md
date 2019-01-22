@@ -72,3 +72,12 @@ chosen action.
 
 The Golang builder currently only supports the `build` and `test` actions.
 
+## External dependencies
+
+External dependencies can make things complicated. The easiest way probably is to
+vendor everything and treat it like usual code controlled by your version control
+system. However, as we're using dep to manage our dependencies and it was a 
+requirement to keep vendor directories out of source control, gomono tries to
+read Gopkg.lock and analyze changes in the used versions, to determine, whether a
+project needs to be rebuild.
+
