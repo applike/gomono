@@ -36,5 +36,6 @@ func main() {
 }
 
 func usage() {
-	log.Fatal(cmd.Gomono.Usage)
+	log.Println(cmd.Gomono.Usage)
+	os.Exit(0)
 }
