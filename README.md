@@ -81,3 +81,19 @@ requirement to keep vendor directories out of source control, gomono tries to
 read Gopkg.lock and analyze changes in the used versions, to determine, whether a
 project needs to be rebuild.
 
+## Examples
+
+Here are two examples, how gomono may be used in a CI-Pipeline using Gitlab ci,
+where `CI_COMMIT_BEFORE_SHA` references the state before the last push and
+`GOMONO_ALL` is a custom environment variable, which can be set to true, if a
+pipeline ist triggered manually, to rebuild everything:
+
+```shell
+gomono build -action=deploy -all=$GOMONO_ALL -from=$CI_COMMIT_BEFORE_SHA -builder=makefile ./...
+
+gomono build -action=test -all=$GOMONO_ALL -from=$CI_COMMIT_BEFORE_SHA -builder=golang ./...
+```
+
+The first call will invoke `make deploy` in all directories, which contain a
+main project and have changed between the previous commit and the newly pushed
+commits. The second will run `go test` for all changed packages.
