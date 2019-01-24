@@ -28,15 +28,17 @@ gomono [cmd] [flags] [packages]
 ### commands
 
 Currently there's only one command provided, the `build` command. `build` takes
-a set of (main) go-packages and reads their dependency graph from the source code.
-After the graph is build, there are a few options, which can be set via flags:
+a set of (main) go-packages and reads their dependency graph from the source
+code. After the graph is build, there are a few options, which can be set via
+flags:
 
 * `-action`: action is required and specifies, how to build the changed code.
   For more, see [actions](#actions)
-* `-all`: if set, gomono ignores the version history and just uses includes all
-  files and directories in the build.
-* `-builder`: once an action like for example `test` has been selected, a builde
-  specifies the implementation, which is used to actually execute the action.
+* `-all`: if set, gomono ignores the version history and just includes all files
+  and directories in the build.
+* `-builder`: once an action like for example `test` has been selected, a
+  `builder` specifies the implementation, which is used to actually execute the
+  action.
   This can be something like go test or a Makefile to setup more complex tasks.
   See [builders](#builders)
 * `-from`: set the first commit, defaults to `HEAD~1`. This is passed to `git
@@ -52,7 +54,7 @@ Actions define a set of steps to be executed, different actions can include
 different sets of source code files. For example it may be useful to execute a
 test action on all directories, but a deploy action may not be useful for
 directories, which contain only libraries. Currently implemented actions are
-`deploy`, `build`, bot include only main packages and `test`, includes all go
+`deploy`, `build`, both include only main packages and `test`, includes all go
 source files.
 
 ### builders
@@ -65,8 +67,8 @@ describe more complicated setups. Builders can execute actions.
 #### makefile
 
 Makefiles can be used in the same directory as main packages, to implement
-`build`, `test` and `deploy` actions. A Makefile has implement a target for the
-chosen action.
+`build`, `test` and `deploy` actions. A Makefile has to implement a target for
+the chosen action.
 
 #### golang
 
@@ -76,10 +78,16 @@ The Golang builder currently only supports the `build` and `test` actions.
 
 External dependencies can make things complicated. The easiest way probably is to
 vendor everything and treat it like usual code controlled by your version control
-system. However, as we're using dep to manage our dependencies and it was a 
+system. However, as we're using dep to manage our dependencies and it was a
 requirement to keep vendor directories out of source control, gomono tries to
-read Gopkg.lock and analyze changes in the used versions, to determine, whether a
-project needs to be rebuild.
+read `Gopkg.lock` and analyze changes in the used versions, to determine, whether
+a project needs to be rebuild. Thus, it is a requirement, that if you want
+external dependencies to be included in the analyses, a valid `Gopkg.lock` has to
+be present. However, keep in mind, that only looking at the declaration of
+dependencies doesn't actually mean, that all changes are detected, and you can
+also run into the reversed case and rebuild all your code, just because some
+lines in `Gopkg.lock` have changed, although the source code didn't actually
+change.
 
 ## Examples
 
